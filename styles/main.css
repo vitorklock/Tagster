@@ -1,0 +1,125 @@
+body, html {
+    background-color: #3d3d3d;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    padding: 30px;
+}
+
+body, html, input, select, textarea {
+    color: #fff;
+    font-size: 18px;
+    line-height: 18px;
+}
+
+.input {
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    padding: 5px;
+    width: 800px;
+    background: #1f1f1f;
+    max-width: 100%;
+}
+
+/*tgs*/
+.tgs {
+    margin: 0;
+    padding: 8px;
+    display: flex;
+    cursor: text;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px;
+    word-break: break-all;
+    z-index: 10;
+}
+
+.tgs, .tgs * {
+    box-sizing: border-box;
+}
+
+.tgs_input {
+    width: 250px;
+    max-width: 100%;
+    word-break: break-all;
+    background-color: transparent;
+    border: none;
+    outline: none;
+    resize: none;
+    padding: 0;
+    overflow: hidden;
+}
+
+.tgs_tag {
+    background-color: rgba(91, 91, 91, 0.4);
+    border-radius: 3px;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    max-width: 100%;
+    position: relative;
+}
+
+.tgs_tag button {
+    background-color: transparent;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    border-radius: inherit;
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    width: 1.5ch;
+    text-align: center;
+    padding: 0;
+}
+
+.tgs_tag button:hover {
+    background-color: rgba(255, 255, 255, 0.6);
+}
+
+.tgs_tag textarea {
+    background: transparent;
+    max-width: 100%;
+    word-break: break-all;
+    border: none;
+    outline: none;
+    resize: none;
+    padding: 0 1ch 0 0;
+    overflow: hidden;
+}
+
+.tgs_tag:focus-within .tgs_move,
+.tgs_move:hover {
+    display: flex;
+}
+
+.tgs_move {
+    position: absolute;
+    background: rgba(91, 91, 91, 0.6);
+    padding: 0.5em;
+    top: 100%;
+    left: 0;
+    transform: translateY(10px);
+    display: flex;
+    width: 80px;
+    height: 40px;
+    justify-content: space-around;
+    border-radius: inherit;
+    overflow: hidden;
+    display: none;
+    z-index: 100;
+}
+
+.tgs_move svg {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
