@@ -66,19 +66,23 @@ body, html, input, select, textarea {
 }
 
 .tgs_tag button {
-    background-color: transparent;
+    background-color: rgba(255, 255, 255, 0.3);
     border: none;
     outline: none;
     cursor: pointer;
-    border-radius: inherit;
+    border-radius: 400px;
     position: absolute;
     right: 5px;
     top: 50%;
     transform: translateY(-50%);
     z-index: 10;
-    width: 1.5ch;
     text-align: center;
-    padding: 0;
+    padding: 5px;
+    height: calc(100% - 20%);
+}
+
+.tgs_tag button svg {
+    height: 100%;
 }
 
 .tgs_tag button:hover {
@@ -116,6 +120,10 @@ body, html, input, select, textarea {
     overflow: hidden;
     display: none;
     z-index: 100;
+}
+
+.tgs_moveLeft, .tgs_moveRight {
+    flex-grow: 1;
 }
 
 .tgs_move svg {
