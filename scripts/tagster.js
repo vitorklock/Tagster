@@ -9,6 +9,7 @@ class Tagster {
             tags: [],
             allowDuplicateTags: false,
             backspace: "edit",
+            readonly: false,
             ...configs,
         }
 
@@ -33,6 +34,7 @@ class Tagster {
     init() {
         let tgs = $(`<div>
             <textarea type="text" class="tgs_input"></textarea>
+            <div class="tgs_enterTip"></div>
         </div>`);
         this.$[0].classList.forEach(c => tgs.addClass(c));
         Object.values(this.$[0].attributes).forEach(a => tgs.attr(a.name, a.value));
@@ -41,6 +43,7 @@ class Tagster {
         this.$.replaceWith(tgs);
         this.$ = tgs;
         this.$input = this.$.find('.tgs_input');
+        if (this.configs.readonly) this.$.css('pointer-events', 'none');
     };
 
     get stylings() {
@@ -51,6 +54,7 @@ class Tagster {
 
     stylize() {
         this.$input.css('height', this.stylings.lineheight);
+        this.$.find(".tgs_enterTip").css('height', this.stylings.lineheight);
     };
 
     #autoResizeTxtA(elm) {
@@ -86,7 +90,7 @@ class Tagster {
 
                 if (this.configs.backspace == "edit") {
                     this.#focusTextAreaEnd($textarea);
-                } else if (this.configs.backspace == "remove") {
+                } else if (this.configs.backspace == "remove" && !e.originalEvent.repeat) {
                     $textarea.parent().remove();
                 };
             };
@@ -123,10 +127,6 @@ class Tagster {
         if (!Array.isArray(tags)) tags = [tags];
 
         for (let tag of tags) {
-            console.log(this.configs.allowDuplicateTags)
-            console.log(this.tags)
-            console.log(tag)
-
             if (!this.configs.allowDuplicateTags && this.tags.includes(tag)) return;
 
             if (this.trigger('beforeAddTag', { tag: tag, })) return;
@@ -163,7 +163,8 @@ class Tagster {
             });
 
             this.trigger('afterAddTag', { tag, $tag });
-        }
+        };
+        this.#autoResizeTxtA(this.$input);
     };
 
     removeTags(tag) {
@@ -176,7 +177,7 @@ class Tagster {
     };
 
     get tags() {
-        return this.$.find('.tgs_tag textarea').toArray().map(t => this.#clearString(t.val()));
+        return this.$.find('.tgs_tag textarea').toArray().map(t => this.#clearString($(t).val()));
     };
 
 

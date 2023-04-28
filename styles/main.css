@@ -34,6 +34,7 @@ body, html, input, select, textarea {
     gap: 5px;
     word-break: break-all;
     z-index: 10;
+    position: relative;
 }
 
 .tgs, .tgs * {
@@ -49,7 +50,31 @@ body, html, input, select, textarea {
     outline: none;
     resize: none;
     padding: 0;
-    overflow: hidden;
+    overflow-y: hidden;
+    position: relative;
+}
+
+.tgs_enterTip {
+    width: 0;
+    /* height: 0; Set via js */
+    position: relative;
+}
+
+.tgs_input:focus~.tgs_enterTip::after {
+    content: " ";
+    background-image: url("data:image/svg+xml,%3Csvg data-name='Слой 1' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ctitle%3EEnter_Key%3C/title%3E%3Cpath d='M6,37.5A3.5,3.5,0,0,1,2.5,34V18A3.5,3.5,0,0,1,6,14.5h9.5V6A3.5,3.5,0,0,1,19,2.5H34A3.5,3.5,0,0,1,37.5,6V34A3.5,3.5,0,0,1,34,37.5Z' fill='%23b0c1d4'/%3E%3Cpath d='M34,3a3,3,0,0,1,3,3V34a3,3,0,0,1-3,3H6a3,3,0,0,1-3-3V18a3,3,0,0,1,3-3H16V6a3,3,0,0,1,3-3H34m0-1H19a4,4,0,0,0-4,4v8H6a4,4,0,0,0-4,4V34a4,4,0,0,0,4,4H34a4,4,0,0,0,4-4V6a4,4,0,0,0-4-4Z' fill='%2366798f'/%3E%3Cpath d='M34,3H19a3,3,0,0,0-3,3v9H6a3,3,0,0,0-3,3V31a3,3,0,0,0,3,3H34a3,3,0,0,0,3-3V6A3,3,0,0,0,34,3Z' fill='%23d8e2ed'/%3E%3Cpolygon points='26 10 26 23 15 23 15 18 8.5 24.5 15 31 15 26 29 26 29 10 26 10' fill='%2336404d'/%3E%3C/svg%3E");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center center;
+    position: absolute;
+    top: 50%;
+    right: 1ch;
+    height: 24px;
+    width: 24px;
+    max-height: 100%;
+    transform: translateY(-50%);
+    -webkit-filter: drop-shadow(3px 3px 2px rgba(0, 0, 0, 0.5));
+    filter: drop-shadow(3px 3px 2px rgba(0, 0, 0, 0.5));
 }
 
 .tgs_tag {
