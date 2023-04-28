@@ -22,7 +22,7 @@ class Tagster {
                 <svg class="tgs_moveLeft" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 512"><!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M9.4 278.6c-12.5-12.5-12.5-32.8 0-45.3l128-128c9.2-9.2 22.9-11.9 34.9-6.9s19.8 16.6 19.8 29.6l0 256c0 12.9-7.8 24.6-19.8 29.6s-25.7 2.2-34.9-6.9l-128-128z"/></svg>
                 <svg class="tgs_moveRight" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 512"><!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M246.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-9.2-9.2-22.9-11.9-34.9-6.9s-19.8 16.6-19.8 29.6l0 256c0 12.9 7.8 24.6 19.8 29.6s25.7 2.2 34.9-6.9l128-128z"/></svg></div>
                 <textarea>${tag}</textarea>
-            <button onclick="$(this).parent().remove();"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg></button> </span>`;
+            <button><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg></button> </span>`;
 
     #focusTextAreaEnd = (textarea) => {
         const $textarea = $(textarea);
@@ -144,9 +144,24 @@ class Tagster {
                     this.$input.focus();
                 }
             });
+
+            // Tag edit
             $textarea.on('blur', () => {
-                if (this.#clearString($textarea.val()) == '') $tag.remove();
+                const val = this.#clearString($textarea.val());
+                let removed = false;
+
+                if ((val == '') ||
+                    (!this.configs.allowDuplicateTags &&
+                        this.tags.filter(t => t == val).length > 1)) {
+                    this.removeTags(val, $tag, true);
+                    removed = true;
+                }
+
+                this.trigger('afterTagEdit', { tag: val, $tag, removed });
             });
+
+            const $remove = $tag.find('button');
+            $remove.on('click', () => this.removeTags(tag, $tag));
 
             const $moveLeft = $tag.find('.tgs_moveLeft'),
                 $moveRight = $tag.find('.tgs_moveRight');
@@ -167,18 +182,18 @@ class Tagster {
         this.#autoResizeTxtA(this.$input);
     };
 
-    removeTags(tag) {
-        if (!tag) this.$.find(`.tgs_tag`).remove();
+    removeTags(tag, $tag, edit = false) {
+        if (tag === undefined) this.$.find(`.tgs_tag`).remove();
 
-        const $tag = this.$.find(`.tgs_tag:contains(${tag})`);
-        if (this.trigger('beforeRemoveTag', { tag, $tag })) return;
+        if ($tag) $tag = $($tag);
+        else $tag = this.$.find(`.tgs_tag:contains(${tag})`);
+
+        if (this.trigger('beforeRemoveTag', { tag, $tag, edit })) return;
         $tag.remove();
-        this.trigger('afterRemoveTag', { tag });
+        this.trigger('afterRemoveTag', { tag, edit });
     };
 
     get tags() {
         return this.$.find('.tgs_tag textarea').toArray().map(t => this.#clearString($(t).val()));
     };
-
-
 };
