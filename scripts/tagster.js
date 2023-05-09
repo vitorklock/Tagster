@@ -57,7 +57,7 @@ class Tagster {
         this.$.find(".tgs_enterTip").css('height', this.stylings.lineheight);
     };
 
-    #autoResizeTxtA(elm) {
+    autoResizeTxtA(elm) {
         let $elm = $(elm);
         const lineHeight = this.stylings.lineheight;
 
@@ -71,9 +71,15 @@ class Tagster {
     startListeners() {
         $(window).on("resize", this.stylize);
 
-        this.$.on('click', () => this.$input.focus());
+        this.$.on('click', () => {
+            this.$input.focus();
+        });
 
-        this.$input.on('input', () => this.#autoResizeTxtA(this.$input));
+        this.$input.on('input', () => this.autoResizeTxtA(this.$input));
+
+        this.$.one('focusin', () => {
+            this.$.find('.tgs_tag textarea').each((i, e) => this.autoResizeTxtA(e));
+        });
 
         this.$input.on('keydown', e => {
             if (e.key == 'Enter') {
@@ -135,8 +141,8 @@ class Tagster {
             this.$input.val('');
 
             const $textarea = $tag.find('textarea');
-            this.#autoResizeTxtA($textarea);
-            $textarea.on('input', () => { this.#autoResizeTxtA($textarea) });
+            this.autoResizeTxtA($textarea);
+            $textarea.on('input', () => { this.autoResizeTxtA($textarea) });
             $textarea.on('click', e => e.stopPropagation());
             $textarea.on('keydown', e => {
                 if (e.key == 'Enter') {
@@ -179,7 +185,7 @@ class Tagster {
 
             this.trigger('afterAddTag', { tag, $tag });
         };
-        this.#autoResizeTxtA(this.$input);
+        this.autoResizeTxtA(this.$input);
     };
 
     removeTags(tag, $tag, edit = false) {
