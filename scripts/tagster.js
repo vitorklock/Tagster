@@ -11,7 +11,16 @@ class Tagster {
             backspace: "edit",
             readonly: false,
             ...configs,
-        }
+        };
+
+        if (configs?.on) {
+            Object.entries(configs.on).forEach(([event, callbacks]) => {
+                if (!Array.isArray(callbacks)) this.on(event, callbacks);
+                else {
+                    callbacks.forEach(callback => this.on(event, callback));
+                };
+            });
+        };
 
         this.init();
         this.stylize();
@@ -19,8 +28,9 @@ class Tagster {
     };
     #tagHtml = (tag) => `<span class="tgs_tag"> 
                 <div class="tgs_move">
-                <svg class="tgs_moveLeft" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 512"><!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M9.4 278.6c-12.5-12.5-12.5-32.8 0-45.3l128-128c9.2-9.2 22.9-11.9 34.9-6.9s19.8 16.6 19.8 29.6l0 256c0 12.9-7.8 24.6-19.8 29.6s-25.7 2.2-34.9-6.9l-128-128z"/></svg>
-                <svg class="tgs_moveRight" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 512"><!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M246.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-9.2-9.2-22.9-11.9-34.9-6.9s-19.8 16.6-19.8 29.6l0 256c0 12.9 7.8 24.6 19.8 29.6s25.7 2.2 34.9-6.9l128-128z"/></svg></div>
+                    <svg class="tgs_moveLeft" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 512"><!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M9.4 278.6c-12.5-12.5-12.5-32.8 0-45.3l128-128c9.2-9.2 22.9-11.9 34.9-6.9s19.8 16.6 19.8 29.6l0 256c0 12.9-7.8 24.6-19.8 29.6s-25.7 2.2-34.9-6.9l-128-128z"/></svg>
+                    <svg class="tgs_moveRight" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 512"><!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M246.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-9.2-9.2-22.9-11.9-34.9-6.9s-19.8 16.6-19.8 29.6l0 256c0 12.9 7.8 24.6 19.8 29.6s25.7 2.2 34.9-6.9l128-128z"/></svg>
+                </div>
                 <textarea>${tag}</textarea>
             <button><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg></button> </span>`;
 
@@ -40,6 +50,9 @@ class Tagster {
         Object.values(this.$[0].attributes).forEach(a => tgs.attr(a.name, a.value));
         tgs.addClass('tgs');
 
+        this.placeholder = this.$.attr('placeholder') || '';
+        if (this.placeholder) tgs.find('textarea').attr('placeholder', this.placeholder);
+
         this.$.replaceWith(tgs);
         this.$ = tgs;
         this.$input = this.$.find('.tgs_input');
@@ -57,15 +70,25 @@ class Tagster {
         this.$.find(".tgs_enterTip").css('height', this.stylings.lineheight);
     };
 
+    static docLineHeight = (() => {
+        const $div = $('<div style="display: none; font-size: 1em;">');
+        $('body').append($div);
+        const lineHeight = $div.css('line-height');
+        $div.remove();
+        return lineHeight;
+    })();
+
     autoResizeTxtA(elm) {
         let $elm = $(elm);
         const lineHeight = this.stylings.lineheight;
 
-        $elm.css('width', $elm.val().length + 3 + 'ch');
+        const width = $elm.val() ? $elm.val().length : this.placeholder.length;
+
+        $elm.css('width', width + 3 + 'ch');
         $elm.css('height', lineHeight);
 
         if ($elm.outerWidth() >= $elm.parent().width()) {
-            $elm.css('height', `${$elm[0].scrollHeight}px`);
+            $elm.css('height', `${$elm[0].scrollHeight || this.docLineHeight}px`);
         }
     }
     startListeners() {
@@ -114,6 +137,7 @@ class Tagster {
 
         let halt = false;
         eventData.preventDefault = () => halt = true;
+        eventData.eventName = event;
 
         this.#listeners[event].forEach(callback => {
             callback(eventData)
