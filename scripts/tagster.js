@@ -5,13 +5,7 @@ class Tagster {
         this.$ = $(element);
         this.$input;
 
-        this.configs = {
-            tags: [],
-            allowDuplicateTags: false,
-            backspace: "edit",
-            readonly: false,
-            ...configs,
-        };
+        if (configs) this.configs = { ...this.configs, ...configs };
 
         if (configs?.on) {
             Object.entries(configs.on).forEach(([event, callbacks]) => {
@@ -26,24 +20,43 @@ class Tagster {
         this.stylize();
         this.startListeners();
     };
-    #tagHtml = (tag) => `<span class="tgs_tag"> 
+    configs = {
+        tags: [],
+        allowDuplicateTags: false,
+        backspace: "edit",
+        readonly: false,
+        inputElement: 'textarea',
+    };
+
+    #tagHtml = (tag) => {
+        const isInputElm = this.configs.inputElement == 'input';
+        const inputHtml = isInputElm ?
+            `<input class="tgs_tagInput"></input>` :
+            `<${this.configs.inputElement} class="tgs_tagInput">${tag}</${this.configs.inputElement}>`;
+
+        const $tag = $(`<span class="tgs_tag"> 
                 <div class="tgs_move">
                     <svg class="tgs_moveLeft" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 512"><!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M9.4 278.6c-12.5-12.5-12.5-32.8 0-45.3l128-128c9.2-9.2 22.9-11.9 34.9-6.9s19.8 16.6 19.8 29.6l0 256c0 12.9-7.8 24.6-19.8 29.6s-25.7 2.2-34.9-6.9l-128-128z"/></svg>
                     <svg class="tgs_moveRight" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 512"><!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M246.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-9.2-9.2-22.9-11.9-34.9-6.9s-19.8 16.6-19.8 29.6l0 256c0 12.9 7.8 24.6 19.8 29.6s25.7 2.2 34.9-6.9l128-128z"/></svg>
                 </div>
-                <textarea>${tag}</textarea>
-            <button><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg></button> </span>`;
+                ${inputHtml}
+            <button><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg></button> </span>`);
 
-    #focusTextAreaEnd = (textarea) => {
-        const $textarea = $(textarea);
-        $textarea.focus();
-        $textarea.prop("selectionStart", $textarea.val().length);
-        $textarea.prop("selectionEnd", $textarea.val().length);
+        if (isInputElm) $tag.find('.tgs_tagInput').val(tag);
+
+        return $tag;
+    }
+
+    #focusTagInputEnd = (tagInput) => {
+        const $tagInput = $(tagInput);
+        $tagInput.focus();
+        $tagInput.prop("selectionStart", $tagInput.val().length);
+        $tagInput.prop("selectionEnd", $tagInput.val().length);
     };
 
     init() {
         let tgs = $(`<div>
-            <textarea type="text" class="tgs_input"></textarea>
+            <${this.configs.inputElement} type="text" class="tgs_input"></${this.configs.inputElement}>
             <div class="tgs_enterTip"></div>
         </div>`);
         this.$[0].classList.forEach(c => tgs.addClass(c));
@@ -51,7 +64,7 @@ class Tagster {
         tgs.addClass('tgs');
 
         this.placeholder = this.$.attr('placeholder') || '';
-        if (this.placeholder) tgs.find('textarea').attr('placeholder', this.placeholder);
+        if (this.placeholder) tgs.find('.tgs_input').attr('placeholder', this.placeholder);
 
         this.$.replaceWith(tgs);
         this.$ = tgs;
@@ -82,15 +95,25 @@ class Tagster {
         let $elm = $(elm);
         const lineHeight = this.stylings.lineheight;
 
-        const width = $elm.val() ? $elm.val().length : this.placeholder.length;
+        // Ignores placeholder inside tag
+        const width = () => {
+            if ($elm.val()) return $elm.val().length;
+            else if ($elm.parent().hasClass('tgs_tag')) return 0;
+            else return this.placeholder.length;
+        };
 
-        $elm.css('width', width + 3 + 'ch');
+        $elm.css('width', width() + 3 + 'ch');
         $elm.css('height', lineHeight);
 
-        if ($elm.outerWidth() >= $elm.parent().width()) {
-            $elm.css('height', `${$elm[0].scrollHeight || this.docLineHeight}px`);
-        }
-    }
+        const usingFullWidth = $elm.outerWidth() >= $elm.parent().width();
+
+        switch ($elm.prop('tagName')) {
+            case 'INPUT': break;
+            default:
+                if (usingFullWidth) $elm.css('height', `${$elm[0].scrollHeight || this.docLineHeight}px`);
+                break;
+        };
+    };
     startListeners() {
         $(window).on("resize", this.stylize);
 
@@ -101,7 +124,7 @@ class Tagster {
         this.$input.on('input', () => this.autoResizeTxtA(this.$input));
 
         this.$.one('focusin', () => {
-            this.$.find('.tgs_tag textarea').each((i, e) => this.autoResizeTxtA(e));
+            this.$.find('.tgs_tag .tgs_tagInput').each((i, e) => this.autoResizeTxtA(e));
         });
 
         this.$input.on('keydown', e => {
@@ -115,12 +138,12 @@ class Tagster {
                 && !this.#clearString(this.$input.val())
                 && this.tags.length > 0) {
                 e.preventDefault();
-                const $textarea = this.$.find('.tgs_tag').last().find("textarea");
+                const $tagInput = this.$.find('.tgs_tag').last().find(".tgs_tagInput");
 
                 if (this.configs.backspace == "edit") {
-                    this.#focusTextAreaEnd($textarea);
+                    this.#focusTagInputEnd($tagInput);
                 } else if (this.configs.backspace == "remove" && !e.originalEvent.repeat) {
-                    $textarea.parent().remove();
+                    $tagInput.parent().remove();
                 };
             };
         });
@@ -164,11 +187,11 @@ class Tagster {
             let $tag = $(this.#tagHtml(tag)).insertBefore(this.$input);
             this.$input.val('');
 
-            const $textarea = $tag.find('textarea');
-            this.autoResizeTxtA($textarea);
-            $textarea.on('input', () => { this.autoResizeTxtA($textarea) });
-            $textarea.on('click', e => e.stopPropagation());
-            $textarea.on('keydown', e => {
+            const $tagInput = $tag.find('.tgs_tagInput');
+            this.autoResizeTxtA($tagInput);
+            $tagInput.on('input', () => { this.autoResizeTxtA($tagInput) });
+            $tagInput.on('click', e => e.stopPropagation());
+            $tagInput.on('keydown', e => {
                 if (e.key == 'Enter') {
                     e.preventDefault();
                     this.$input.focus();
@@ -176,8 +199,8 @@ class Tagster {
             });
 
             // Tag edit
-            $textarea.on('blur', () => {
-                const val = this.#clearString($textarea.val());
+            $tagInput.on('blur', () => {
+                const val = this.#clearString($tagInput.val());
                 let removed = false;
 
                 if ((val == '') ||
@@ -199,12 +222,12 @@ class Tagster {
             $moveLeft.on('click', (e) => {
                 e.stopPropagation();
                 $tag.prev('.tgs_tag').before($tag);
-                this.#focusTextAreaEnd($textarea);
+                this.#focusTagInputEnd($tagInput);
             });
             $moveRight.on('click', (e) => {
                 e.stopPropagation();
                 $tag.next('.tgs_tag').after($tag);
-                this.#focusTextAreaEnd($textarea);
+                this.#focusTagInputEnd($tagInput);
             });
 
             this.trigger('afterAddTag', { tag, $tag });
@@ -224,6 +247,6 @@ class Tagster {
     };
 
     get tags() {
-        return this.$.find('.tgs_tag textarea').toArray().map(t => this.#clearString($(t).val()));
+        return this.$.find('.tgs_tag .tgs_tagInput').toArray().map(t => this.#clearString($(t).val()));
     };
 };
