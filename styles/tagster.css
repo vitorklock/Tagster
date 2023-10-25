@@ -19,6 +19,7 @@
 .tgs_input {
     width: 250px;
     max-width: 100%;
+    min-width: 60px;
     word-break: break-all;
     background-color: transparent;
     border: none;
@@ -27,6 +28,7 @@
     padding: 0;
     overflow-y: hidden;
     position: relative;
+    color: inherit;
 }
 
 .tgs_enterTip {
@@ -98,6 +100,7 @@
     resize: none;
     padding: 0 1ch 0 0;
     overflow: hidden;
+    color: inherit;
 }
 
 .tgs_tag:focus-within .tgs_move,
